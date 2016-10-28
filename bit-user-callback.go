@@ -292,7 +292,7 @@ configuration will be written by invoking bit-user-callback with -genconf.
 		os.Exit(0)
 	}
 
-	log.SetPrefix("user-callback")
+	log.SetPrefix("user-callback: ")
 
 	c, err := readConfig()
 	if err != nil {
