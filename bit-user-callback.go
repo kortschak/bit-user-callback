@@ -264,7 +264,7 @@ func main() {
 	help := flag.Bool("help", false, "print this message")
 	flag.Parse()
 	if *help {
-		fmt.Fprintln(os.Stderr, `Usage of user-callback:
+		fmt.Fprintln(os.Stderr, `Usage of bit-user-callback:
 
 If invoked by Back In Time, user-callback accepts three or more arguments:
 
@@ -275,7 +275,7 @@ If invoked by Back In Time, user-callback accepts three or more arguments:
 user-callback ignores profile id and only acts for reason 7.
 
 Operation of user-callback is configured via a JSON file. A default
-configuration will be written by invoking user-callback with -genconf.
+configuration will be written by invoking bit-user-callback with -genconf.
 
 [1]https://github.com/bit-team/user-callback
 `)
