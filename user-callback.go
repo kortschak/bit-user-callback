@@ -274,6 +274,7 @@ configuration will be written by invoking user-callback with -genconf.
 		log.Fatalf("failed to read config: %v", err)
 	}
 
+	log.SetPrefix("user-callback")
 	var f *os.File
 	if c.LogFile != "" {
 		f, err = os.OpenFile(c.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
