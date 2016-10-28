@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// user-callback is a Back In Time user callback to determine the current
+// bit-user-callback is a Back In Time user callback to determine the current
 // wi-fi connection and wake a target server using Wake-On-Lan.
 //
 // The executable or a symlink to the executable link should be placed at
@@ -99,6 +99,23 @@ func (d *duration) UnmarshalJSON(data []byte) error {
 // MarshalJSON marshals a duration according as Go formatted time.Duration.
 func (d duration) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(time.Duration(d).String())), nil
+}
+
+// installLink creates a symbolic link from the Back In Time config directory
+// to the executable.
+func installLink() {
+	exe, err := os.Readlink("/proc/self/exe")
+	if err != nil {
+		log.Fatalf("could not determine executable path: %v", err)
+	}
+	dir, err := configDir()
+	if err != nil {
+		log.Fatalf("could not determine config directory: %v", err)
+	}
+	err = os.Symlink(exe, filepath.Join(dir, "user-callback"))
+	if err != nil {
+		log.Fatalf("could not create symbolic link: %v", err)
+	}
 }
 
 // generateConfig writes a default configuration file.
@@ -243,6 +260,7 @@ func wake(mac, local, remote string) error {
 
 func main() {
 	genconf := flag.Bool("genconf", false, "generate a configuration file")
+	install := flag.Bool("install", false, "create a symlink to the executable")
 	help := flag.Bool("help", false, "print this message")
 	flag.Parse()
 	if *help {
@@ -264,8 +282,13 @@ configuration will be written by invoking user-callback with -genconf.
 		flag.PrintDefaults()
 		os.Exit(0)
 	}
+	if *install {
+		installLink()
+	}
 	if *genconf {
 		generateConfig()
+	}
+	if *install || *genconf {
 		os.Exit(0)
 	}
 
