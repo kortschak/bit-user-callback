@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
@@ -280,7 +281,7 @@ configuration will be written by invoking user-callback with -genconf.
 			log.Fatal(err)
 		}
 		defer f.Close()
-		log.SetOutput(f)
+		log.SetOutput(io.MultiWriter(os.Stderr, f))
 	}
 
 	if c.Verbose {
