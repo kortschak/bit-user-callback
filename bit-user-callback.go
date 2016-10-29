@@ -292,28 +292,30 @@ configuration will be written by invoking bit-user-callback with -genconf.
 		os.Exit(0)
 	}
 
-	log.SetPrefix("user-callback: ")
+	info := log.New(os.Stdout, "user-callback: ", log.LstdFlags)
+	fatal := log.New(os.Stderr, "user-callback: ", log.LstdFlags)
 
 	c, err := readConfig()
 	if err != nil {
-		log.Fatalf("failed to read config: %v", err)
+		fatal.Fatalf("failed to read config: %v", err)
 	}
 
 	var f *os.File
 	if c.LogFile != "" {
 		f, err = os.OpenFile(c.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			log.Fatal(err)
+			fatal.Fatal(err)
 		}
 		defer f.Close()
-		log.SetOutput(io.MultiWriter(os.Stderr, f))
+		info.SetOutput(io.MultiWriter(os.Stdout, f))
+		fatal.SetOutput(io.MultiWriter(os.Stderr, f))
 	}
 
 	if c.Verbose {
-		log.Printf("received arguments: %q", flag.Args())
+		info.Printf("received arguments: %q", flag.Args())
 	}
 	if flag.NArg() < 3 {
-		log.Fatalf("unexpected number of arguments: want >=3, got %d", flag.NArg())
+		fatal.Fatalf("unexpected number of arguments: want >=3, got %d", flag.NArg())
 	}
 	profile := flag.Args()[1]
 	reason := flag.Args()[2]
@@ -323,17 +325,17 @@ configuration will be written by invoking bit-user-callback with -genconf.
 
 	ssids, err := essids()
 	if err != nil {
-		log.Fatal(err)
+		fatal.Fatal(err)
 	}
 	if !contains(c.ESSID, ssids) {
-		log.Fatalf("not connected to %q", c.ESSID)
+		info.Fatalf("not connected to %q", c.ESSID)
 	}
 
 	start := time.Now()
 	var sent bool
 	for {
 		if time.Since(start) > time.Duration(c.Timeout) {
-			log.Fatal("timed out waiting for %s", c.Server)
+			fatal.Fatal("timed out waiting for %s", c.Server)
 		}
 		resp, err := http.Get(c.Server)
 		if err == nil {
@@ -343,14 +345,14 @@ configuration will be written by invoking bit-user-callback with -genconf.
 			}
 		}
 		if !sent {
-			log.Print("sending wake packet")
+			info.Print("sending wake packet")
 			err = wake(c.MAC, c.Local, c.Remote)
 			if err != nil {
-				log.Fatal(err)
+				fatal.Fatal(err)
 			}
 			sent = true
 		}
 		time.Sleep(time.Duration(c.Delay))
 	}
-	log.Print("server ready")
+	info.Print("server ready")
 }
