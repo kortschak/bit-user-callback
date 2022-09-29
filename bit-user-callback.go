@@ -62,14 +62,15 @@ type config struct {
 	Timeout duration `json:"wake-timeout"`
 	Local   string   `json:"wake-local"`
 	Remote  string   `json:"wake-remote"`
+	Wait    duration `json:"wait"`
 }
 
 type duration time.Duration
 
 // UnmarshalJSON unmarshals a duration according to the following scheme:
-//  * If the element is absent the duration is zero.
-//  * If the element is parsable as a time.Duration, the parsed value is kept.
-//  * If the element is parsable as a number, that number of seconds is kept.
+//   - If the element is absent the duration is zero.
+//   - If the element is parsable as a time.Duration, the parsed value is kept.
+//   - If the element is parsable as a number, that number of seconds is kept.
 func (d *duration) UnmarshalJSON(data []byte) error {
 	if len(data) == 0 {
 		*d = 0
@@ -237,13 +238,13 @@ func contains(s string, slice []string) bool {
 func wake(mac, local, remote string) error {
 	raddr, err := net.ResolveUDPAddr("udp", remote)
 	if err != nil {
-		return fmt.Errorf("could not parse remote %q as a valid UDP address: %v\n", remote, err)
+		return fmt.Errorf("could not parse remote %q as a valid UDP address: %v", remote, err)
 	}
 	var laddr *net.UDPAddr
 	if local != "" {
 		laddr, err = net.ResolveUDPAddr("udp", local)
 		if err != nil {
-			return fmt.Errorf("could not parse local %q as a valid UDP address: %v\n", local, err)
+			return fmt.Errorf("could not parse local %q as a valid UDP address: %v", local, err)
 		}
 	}
 
@@ -253,7 +254,7 @@ func wake(mac, local, remote string) error {
 	}
 	err = wol.Wake(hwaddr, nil, laddr, raddr)
 	if err != nil {
-		return fmt.Errorf("error attempting to wake %s: %v\n", hwaddr, err)
+		return fmt.Errorf("error attempting to wake %s: %v", hwaddr, err)
 	}
 	return nil
 }
@@ -335,7 +336,7 @@ configuration will be written by invoking bit-user-callback with -genconf.
 	var sent bool
 	for {
 		if time.Since(start) > time.Duration(c.Timeout) {
-			fatal.Fatal("timed out waiting for %s", c.Server)
+			fatal.Fatalf("timed out waiting for %s", c.Server)
 		}
 		resp, err := http.Get(c.Server)
 		if err == nil {
@@ -354,5 +355,6 @@ configuration will be written by invoking bit-user-callback with -genconf.
 		}
 		time.Sleep(time.Duration(c.Delay))
 	}
+	time.Sleep(time.Duration(c.Wait))
 	info.Print("server ready")
 }
