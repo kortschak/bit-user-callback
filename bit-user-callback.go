@@ -355,6 +355,8 @@ configuration will be written by invoking bit-user-callback with -genconf.
 		}
 		time.Sleep(time.Duration(c.Delay))
 	}
-	time.Sleep(time.Duration(c.Wait))
+	if sent {
+		time.Sleep(time.Duration(c.Wait))
+	}
 	info.Print("server ready")
 }
